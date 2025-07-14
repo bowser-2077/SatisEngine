@@ -8,7 +8,7 @@ from pytubefix.cli import on_progress
 from moviepy.editor import VideoFileClip, CompositeVideoClip, vfx
 import os
 
-# === FONCTIONS ===
+
 
 def download_youtube_segment(url, start_time, end_time, crop_mode):
     print(f"[DEBUG] Téléchargement : {url}")
@@ -25,7 +25,7 @@ def download_youtube_segment(url, start_time, end_time, crop_mode):
     elif crop_mode == "Top":
         clip = clip.fx(vfx.crop, height=960, y1=0)
     else:
-        # Pas de crop si mode inconnu
+        
         pass
 
     clip.write_videofile("video_top.mp4", codec="libx264")
@@ -54,12 +54,12 @@ def start_render():
             end_time = end_time_var.get().strip()
             crop_mode = crop_mode_var.get()
 
-            # 1. Télécharger + découper la vidéo YouTube
-            status_var.set("📥 Téléchargement YouTube...")
+            
+            status_var.set("Downloading Video...")
             video_path = download_youtube_segment(yt_link, start_time, end_time, crop_mode)
 
-            # 2. Lancer le rendu de la boule
-            status_var.set("🌀 Rendu de la boule...")
+            
+            status_var.set("Rendering...")
             params = {
                 'gravity': float(gravity_var.get()),
                 'velocity': float(velocity_var.get()),
@@ -74,15 +74,15 @@ def start_render():
                 status_var.set(f"Progression : {val}%, encodage en cours...")
 
             def done_callback():
-                status_var.set("🧩 Assemblage final...")
+                status_var.set("Encoding...")
                 assemble_final_video("video_top.mp4", "render.mp4")
-                status_var.set("✅ Vidéo TikTok prête : output_tiktok.mp4")
+                status_var.set("Video is ready...")
                 button.config(state="normal")
 
             generate_video(params, progress_callback=update_progress, done_callback=done_callback)
 
         except Exception as e:
-            status_var.set(f"❌ Erreur : {e}")
+            status_var.set(f"Error: {e}")
             button.config(state="normal")
 
     threading.Thread(target=run, daemon=True).start()
@@ -90,7 +90,7 @@ def start_render():
 # === INTERFACE ===
 
 root = tk.Tk()
-root.title("SatisEngine TikTok Tool")
+root.title("SatisEngine Beta")
 root.geometry("700x760")
 
 style = ttk.Style()
@@ -106,35 +106,35 @@ def add_field(label, var):
     ttk.Label(frame, text=label).pack(anchor="w")
     ttk.Entry(frame, textvariable=var).pack(fill="x", pady=5)
 
-# Champs YouTube
+
 yt_var = tk.StringVar()
 start_time_var = tk.StringVar(value="00:00")
 end_time_var = tk.StringVar(value="00:20")
-add_field("🎥 Lien YouTube", yt_var)
-add_field("⏱️ Start time (ex: 00:30)", start_time_var)
-add_field("⏱️ End time (ex: 00:50)", end_time_var)
+add_field("Youtube Link", yt_var)
+add_field("Start time (ex: 00:30)", start_time_var)
+add_field("End time (ex: 00:50)", end_time_var)
 
-# Nouveau champ crop mode
-ttk.Label(frame, text="📐 Mode de recadrage vidéo :").pack(anchor="w", pady=(10,0))
+
+ttk.Label(frame, text="Video cropping :").pack(anchor="w", pady=(10,0))
 crop_mode_var = tk.StringVar(value="Centered")
 crop_combo = ttk.Combobox(frame, textvariable=crop_mode_var, values=["Centered", "Top"], state="readonly")
 crop_combo.pack(fill="x", pady=5)
 
-# Champs Rendu Boule
+
 gravity_var = tk.StringVar(value="0.1")
 velocity_var = tk.StringVar(value="2")
 radius_var = tk.StringVar(value="15")
 growth_var = tk.StringVar(value="1.5")
 duration_var = tk.StringVar(value="20")
 
-ttk.Label(frame, text="--- Paramètres de la boule rebondissante ---").pack(pady=5)
+ttk.Label(frame, text="--- Ball parameters ---").pack(pady=5)
 add_field("Gravity", gravity_var)
 add_field("Default speed", velocity_var)
 add_field("Default size", radius_var)
 add_field("Growing by impact", growth_var)
 add_field("Video length (seconds)", duration_var)
 
-button = ttk.Button(frame, text="🚀 Lancer le rendu TikTok", command=start_render)
+button = ttk.Button(frame, text="Start Rendering", command=start_render)
 button.pack(pady=10)
 
 progress_bar = ttk.Progressbar(frame, maximum=100, mode='determinate')
